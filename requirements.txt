@@ -4,4 +4,3 @@ torch
 soundfile
 librosa
 matplotlib
-numpy
