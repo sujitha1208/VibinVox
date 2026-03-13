@@ -4,7 +4,6 @@ from transformers import pipeline
 import librosa
 import matplotlib.pyplot as plt
 import time
-import numpy as np
 
 st.set_page_config(page_title="VIBINVOX – EMOTION ENGINE", layout="centered")
 
@@ -18,52 +17,50 @@ html, body, [class*="css"]{
 font-family:"Times New Roman",serif;
 }
 
-/* Grey elegant background */
+/* elegant grey background */
 
 .stApp{
-background: linear-gradient(135deg,#e6e6e6,#f3f3f3,#e0e0e0);
+background: linear-gradient(135deg,#e7e7e7,#f3f3f3,#e1e1e1);
 background-size:300% 300%;
-animation:bgMove 20s ease infinite;
+animation:bgmove 20s ease infinite;
 }
 
-@keyframes bgMove{
+@keyframes bgmove{
 0%{background-position:0% 50%}
 50%{background-position:100% 50%}
 100%{background-position:0% 50%}
 }
 
-/* Title */
+/* TITLE */
 
 .title{
 font-family:'Playfair Display',serif;
-font-size:52px;
+font-size:54px;
 font-weight:900;
 text-align:center;
+width:100%;
 letter-spacing:2px;
-white-space:nowrap;
 color:#111;
 }
-
-/* Tagline */
 
 .tag{
 text-align:center;
 font-size:18px;
 letter-spacing:2px;
-color:#555;
 margin-top:-8px;
+color:#555;
 }
 
-/* Glass card */
+/* glass card */
 
 .card{
-background:rgba(255,255,255,0.7);
+background:rgba(255,255,255,0.75);
 padding:25px;
 border-radius:14px;
 box-shadow:0 8px 25px rgba(0,0,0,0.08);
 }
 
-/* Button */
+/* button */
 
 .stButton>button{
 background:linear-gradient(90deg,#444,#222);
@@ -72,11 +69,6 @@ border:none;
 border-radius:8px;
 height:45px;
 width:220px;
-transition:0.3s;
-}
-
-.stButton>button:hover{
-transform:scale(1.05);
 }
 
 </style>
@@ -97,6 +89,10 @@ emotion_model = pipeline(
 model="superb/wav2vec2-base-superb-er"
 )
 
+# emotion history
+if "history" not in st.session_state:
+    st.session_state.history=[]
+
 record = st.audio_input("🎙 Record voice")
 upload = st.file_uploader("Upload voice",type=["wav","mp3","m4a","ogg","webm","flac"])
 
@@ -106,19 +102,19 @@ if audio:
 
     st.audio(audio)
 
-    with st.spinner("Analyzing voice vibrations..."):
+    with st.spinner("Analyzing vibrations..."):
         time.sleep(2)
 
     temp = tempfile.NamedTemporaryFile(delete=False)
     temp.write(audio.read())
 
-    # -------- WAVEFORM --------
+    # waveform
     y, sr = librosa.load(temp.name)
 
-    fig, ax = plt.subplots(figsize=(6,1.4))
+    fig, ax = plt.subplots(figsize=(6,1.5))
     ax.plot(y,color="black")
-    ax.set_title("Voice Frequency Pattern",fontsize=10)
     ax.axis("off")
+    ax.set_title("Voice Frequency Pattern",fontsize=10)
 
     st.pyplot(fig)
 
@@ -141,7 +137,10 @@ if audio:
 
         st.success(f"🎯 Detected Emotion: {emotion}")
 
-        # -------- Emotion Confidence Graph --------
+        # save history
+        st.session_state.history.append(emotion)
+
+        # confidence chart
         fig2, ax2 = plt.subplots(figsize=(6,2))
 
         ax2.barh(labels,scores)
@@ -151,31 +150,48 @@ if audio:
 
         st.pyplot(fig2)
 
-        # -------- Emotion Responses --------
+        # emotion response
 
         if main=="hap":
 
             st.balloons()
             st.markdown("### 😄 Happiness Detected")
-            st.markdown("💛 Your voice radiates joy and positivity.")
-            st.markdown("✨ VibinVox Suggestion: Keep spreading that energy!")
+            st.markdown("💛 Your voice radiates positivity.")
 
         elif main=="sad":
 
             st.markdown("### 😢 Sadness Detected")
             st.markdown("🌧 Your tone reflects sadness.")
-            st.markdown("💙 VibinVox Suggestion: Take a break or listen to calming music.")
+            st.markdown("💙 Try listening to calming music.")
 
         elif main=="ang":
 
             st.markdown("### 😡 Anger Detected")
             st.markdown("🔥 Strong emotional tone detected.")
-            st.markdown("🧘 VibinVox Suggestion: Pause and take slow deep breaths.")
+            st.markdown("🧘 Take a deep breath and relax.")
 
         elif main=="neu":
 
             st.markdown("### 😌 Neutral Emotion")
             st.markdown("🌿 Your voice sounds calm and balanced.")
-            st.markdown("✨ VibinVox Suggestion: Maintain this peaceful tone.")
+
+# -------- Emotion History Dashboard --------
+
+if st.session_state.history:
+
+    st.markdown("### 📊 Emotion History")
+
+    history_data={}
+    for e in st.session_state.history:
+        history_data[e]=history_data.get(e,0)+1
+
+    fig3, ax3 = plt.subplots()
+
+    ax3.bar(history_data.keys(),history_data.values())
+
+    ax3.set_ylabel("Frequency")
+    ax3.set_title("Detected Emotions Over Time")
+
+    st.pyplot(fig3)
 
 st.markdown('</div>', unsafe_allow_html=True)
