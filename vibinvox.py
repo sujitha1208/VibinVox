@@ -7,7 +7,7 @@ import time
 
 st.set_page_config(page_title="VIBINVOX – EMOTION ENGINE", layout="centered")
 
-# ---------- PREMIUM UI ----------
+# ---------- SUBTLE PREMIUM UI ----------
 st.markdown("""
 <style>
 
@@ -16,13 +16,13 @@ font-family:"Times New Roman",serif;
 }
 
 .stApp{
-background: linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#1c1c1c);
-background-size:400% 400%;
-animation: gradientBG 18s ease infinite;
-color:white;
+background: linear-gradient(120deg,#f6f7fb,#eef1f6,#f6f7fb);
+background-size:200% 200%;
+animation: subtleMove 18s ease infinite;
+color:#2b2b2b;
 }
 
-@keyframes gradientBG{
+@keyframes subtleMove{
 0%{background-position:0% 50%}
 50%{background-position:100% 50%}
 100%{background-position:0% 50%}
@@ -30,8 +30,9 @@ color:white;
 
 h1{
 text-align:center;
-font-size:42px;
+font-size:40px;
 letter-spacing:2px;
+color:#1a1a1a;
 }
 
 .stButton>button{
@@ -46,14 +47,14 @@ transition:0.3s;
 }
 
 .stButton>button:hover{
-transform:scale(1.08);
+transform:scale(1.05);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<h1>VIBINVOX – EMOTION ENGINE</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;'>Precision in Every Vibration</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;font-size:18px;'>Precision in Every Vibration</p>", unsafe_allow_html=True)
 
 st.markdown("---")
 
