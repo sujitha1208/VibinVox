@@ -3,62 +3,76 @@ import tempfile
 from transformers import pipeline
 import librosa
 import matplotlib.pyplot as plt
+import numpy as np
 import time
 
 st.set_page_config(page_title="VIBINVOX – EMOTION ENGINE", layout="centered")
 
-# ---------- SUBTLE PREMIUM UI ----------
+# ---------- PREMIUM UI ----------
 st.markdown("""
 <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap');
 
 html, body, [class*="css"]{
 font-family:"Times New Roman",serif;
 }
 
 .stApp{
-background: linear-gradient(120deg,#f6f7fb,#eef1f6,#f6f7fb);
-background-size:200% 200%;
-animation: subtleMove 18s ease infinite;
-color:#2b2b2b;
+background: linear-gradient(135deg,#e0e0e0,#f2f2f2,#d8d8d8);
+background-size:300% 300%;
+animation: moveBG 20s ease infinite;
 }
 
-@keyframes subtleMove{
+@keyframes moveBG{
 0%{background-position:0% 50%}
 50%{background-position:100% 50%}
 100%{background-position:0% 50%}
 }
 
-h1{
+.title{
+font-family:'Playfair Display',serif;
+font-size:50px;
 text-align:center;
-font-size:40px;
+letter-spacing:3px;
+color:#111;
+}
+
+.tag{
+text-align:center;
+font-size:18px;
+color:#444;
 letter-spacing:2px;
-color:#1a1a1a;
+margin-top:-10px;
+}
+
+.card{
+background:rgba(255,255,255,0.65);
+padding:25px;
+border-radius:14px;
+backdrop-filter:blur(10px);
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
 .stButton>button{
-background: linear-gradient(90deg,#ff9966,#ff5e62);
+background:linear-gradient(90deg,#444,#222);
 color:white;
 border:none;
 border-radius:8px;
 height:45px;
 width:220px;
-font-size:17px;
-transition:0.3s;
-}
-
-.stButton>button:hover{
-transform:scale(1.05);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1>VIBINVOX – EMOTION ENGINE</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;font-size:18px;'>Precision in Every Vibration</p>", unsafe_allow_html=True)
+st.markdown('<div class="title">VIBINVOX – EMOTION ENGINE</div>', unsafe_allow_html=True)
+st.markdown('<div class="tag">Precision in Every Vibration</div>', unsafe_allow_html=True)
 
-st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown('<div class="card">', unsafe_allow_html=True)
 
-st.info("🎙 Record or upload voice and VibinVox will analyze the emotion.")
+st.info("🎙 Record or upload voice and VibinVox will analyze the emotional vibration.")
 
 # Emotion model
 emotion_model = pipeline(
@@ -66,12 +80,8 @@ emotion_model = pipeline(
 model="superb/wav2vec2-base-superb-er"
 )
 
-# Audio inputs
-record = st.audio_input("🎙 Record your voice")
-upload = st.file_uploader(
-"Upload voice",
-type=["wav","mp3","m4a","ogg","webm","flac"]
-)
+record = st.audio_input("🎙 Record voice")
+upload = st.file_uploader("Upload voice",type=["wav","mp3","m4a","ogg","webm","flac"])
 
 audio = record if record else upload
 
@@ -85,13 +95,13 @@ if audio:
     temp = tempfile.NamedTemporaryFile(delete=False)
     temp.write(audio.read())
 
-    # -------- Waveform --------
+    # -------- Animated Waveform --------
     y, sr = librosa.load(temp.name)
 
-    fig, ax = plt.subplots(figsize=(6,1.2))
-    ax.plot(y)
+    fig, ax = plt.subplots(figsize=(6,1.5))
+    ax.plot(y,color="black")
+    ax.set_title("Voice Frequency Pattern",fontsize=10)
     ax.axis("off")
-    ax.set_title("Voice Waveform", fontsize=9)
 
     st.pyplot(fig)
 
@@ -99,55 +109,59 @@ if audio:
 
         results = emotion_model(temp.name)
 
-        labels = [r["label"] for r in results]
-        scores = [r["score"] for r in results]
+        labels=[r["label"] for r in results]
+        scores=[r["score"] for r in results]
 
-        emotion_map = {
-            "hap": "Happy 😊",
-            "sad": "Sad 😢",
-            "ang": "Angry 😡",
-            "neu": "Neutral 😐"
+        emotion_map={
+        "hap":"Happy 😊",
+        "sad":"Sad 😢",
+        "ang":"Angry 😡",
+        "neu":"Neutral 😐"
         }
 
-        main = labels[0]
-        emotion = emotion_map.get(main,"Neutral 😐")
+        main=labels[0]
+        emotion=emotion_map.get(main,"Neutral 😐")
 
         st.success(f"🎯 Detected Emotion: {emotion}")
 
-        # -------- Confidence Bars --------
-        fig2, ax2 = plt.subplots(figsize=(6,2))
-        ax2.barh(labels, scores)
-        ax2.set_xlim(0,1)
-        ax2.set_title("Emotion Confidence")
-        ax2.set_xlabel("Probability")
+        # -------- Emotion Meter Gauge --------
+        fig2, ax2 = plt.subplots(figsize=(4,4))
+
+        value=scores[0]
+        theta=np.linspace(0,np.pi,100)
+
+        ax2.plot(np.cos(theta),np.sin(theta))
+        ax2.scatter(np.cos(value*np.pi),np.sin(value*np.pi),s=200)
+
+        ax2.set_title("Emotion Intensity Meter")
+        ax2.axis("off")
 
         st.pyplot(fig2)
 
-        # -------- Emotion Animations --------
-
-        if main == "hap":
+        # -------- Emotion Advice --------
+        if main=="hap":
 
             st.balloons()
-            st.markdown("## 😄 Happiness Detected")
-            st.markdown("💛 Your voice sounds joyful and energetic!")
+            st.markdown("### 😄 Happiness Detected")
+            st.markdown("💛 Your voice radiates positivity and excitement.")
+            st.markdown("✨ Keep spreading that positive energy!")
 
-        elif main == "sad":
+        elif main=="sad":
 
-            st.markdown("## 😢 Sadness Detected")
-            st.markdown("🌧️ Your voice carries a sad tone.")
-            st.markdown("💙 Sending calm and comfort.")
+            st.markdown("### 😢 Sadness Detected")
+            st.markdown("🌧 Your tone reflects sadness.")
+            st.markdown("💙 Suggestion: take a break, talk to someone, or listen to music.")
 
-        elif main == "ang":
+        elif main=="ang":
 
-            st.markdown("## 😡 Anger Detected")
-            st.markdown("🔥 Strong emotional tone detected.")
-            st.markdown("🧘 Try taking a deep breath and relaxing.")
+            st.markdown("### 😡 Anger Detected")
+            st.markdown("🔥 Strong emotional energy detected.")
+            st.markdown("🧘 Suggestion: pause, breathe slowly, and relax your mind.")
 
-        elif main == "neu":
+        elif main=="neu":
 
-            st.markdown("## 😌 Neutral Emotion")
+            st.markdown("### 😌 Neutral Emotion")
             st.markdown("🌿 Your voice sounds calm and balanced.")
+            st.markdown("✨ Maintain this peaceful state.")
 
-        else:
-
-            st.markdown("✨ Emotion detected successfully.")
+st.markdown('</div>', unsafe_allow_html=True)
